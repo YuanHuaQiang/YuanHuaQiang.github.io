@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>MySql-索引 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="在 MySQL 的 InnoDB 存储引擎中，直接创建哈希索引是不被支持的。InnoDB 引擎默认使用 B-tree 索引结构，并且不允许手动指定索引类型为哈希索引。 不过，InnoDB 会在某些情况下自动使用哈希索引的特性。具体来说，InnoDB 引擎在处理自适应哈希索引（Adaptive Hash Index, AHI）时，会根据查询模式动态地将一些 B-tree 索引部分转换为哈希索引，以加">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySql-索引">
+<meta property="og:url" content="https://yuanhuaqiang.github.io/2024/08/22/MySql-%E7%B4%A2%E5%BC%95/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在 MySQL 的 InnoDB 存储引擎中，直接创建哈希索引是不被支持的。InnoDB 引擎默认使用 B-tree 索引结构，并且不允许手动指定索引类型为哈希索引。 不过，InnoDB 会在某些情况下自动使用哈希索引的特性。具体来说，InnoDB 引擎在处理自适应哈希索引（Adaptive Hash Index, AHI）时，会根据查询模式动态地将一些 B-tree 索引部分转换为哈希索引，以加">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-08-22T03:40:15.000Z">
+<meta property="article:modified_time" content="2025-06-15T01:41:44.916Z">
+<meta property="article:author" content="YHQ">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://yuanhuaqiang.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-MySql-索引" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/08/22/MySql-%E7%B4%A2%E5%BC%95/" class="article-date">
+  <time class="dt-published" datetime="2024-08-22T03:40:15.000Z" itemprop="datePublished">2024-08-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      MySql-索引
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>在 MySQL 的 InnoDB 存储引擎中，直接创建哈希索引是不被支持的。InnoDB 引擎默认使用 B-tree 索引结构，并且不允许手动指定索引类型为哈希索引。</p>
+<p>不过，InnoDB 会在某些情况下自动使用哈希索引的特性。具体来说，InnoDB 引擎在处理自适应哈希索引（Adaptive Hash Index, AHI）时，会根据查询模式动态地将一些 B-tree 索引部分转换为哈希索引，以加速等值查询。</p>
+<p>自适应哈希索引（Adaptive Hash Index, AHI）是 InnoDB 存储引擎的一个自动优化特性，用于加速特定查询的性能。InnoDB 根据实际的查询模式来决定是否为某些 B-tree 索引生成哈希索引部分，以优化等值查询的速度。这个过程主要与查询模式和访问频率有关，而不是直接根据字段类型来决定。</p>
+<p>解释 MySQL 中索引的类型（B-tree、Hash 等）及适用场景。</p>
+<ol>
+<li>B-tree 索引</li>
+</ol>
+<p>适用场景：</p>
+<p>• 范围查询：B-tree 索引适合于范围查询，例如 BETWEEN、&lt;、&gt; 等操作。这是因为 B-tree 结构中的节点是有序的，可以快速找到范围内的记录。<br>• 排序操作：B-tree 索引在进行排序操作时也很高效，因为数据在索引中的顺序与实际数据顺序一致。<br>• 主键和唯一索引：通常情况下，B-tree 索引用于主键和唯一索引，以确保数据的唯一性和快速查找。<br>2. Hash 索引</p>
+<p>适用场景：</p>
+<p>• 等值查询：Hash 索引非常适合等值查询（例如 &#x3D; 或者 IN），因为 Hash 索引基于哈希算法，可以直接定位到具体的记录。<br>• 高并发查询：在高并发的情况下，Hash 索引因为其快速查找的特性，可以提升查询性能。<br>总结</p>
+<p>•	B-tree 索引适合大多数查询场景，包括等值查询和范围查询，是 MySQL 中最常用的索引类型。<br>•	Hash 索引适合高性能的等值查询，但不支持范围查询和排序操作。<br>•	Full-text 索引适合全文搜索，但不适合精确匹配。<br>•	R-tree 索引适合地理空间数据查询，常用于 GIS 系统中。<br>•	聚簇索引通常用于主键索引，适合需要快速数据检索的场景。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://yuanhuaqiang.github.io/2024/08/22/MySql-%E7%B4%A2%E5%BC%95/" data-id="cmbx1u38m00053uru5ez9cxv3" data-title="MySql-索引" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2024/08/22/TCP%E5%92%8CUDP%E5%8D%8F%E8%AE%AE%E5%9C%A8%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8A%E7%9A%84%E5%B7%AE%E5%BC%82/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          TCP 和 UDP 协议在应用场景上的差异
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/04/18/2021-04-17%E9%9D%A2%E8%AF%95%E5%98%89%E7%AB%8B%E5%88%9B/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2021/04/17面试嘉立创</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/http/" rel="tag">http</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interview/" rel="tag">interview</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vue/" rel="tag">vue</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/http/" style="font-size: 10px;">http</a> <a href="/tags/interview/" style="font-size: 20px;">interview</a> <a href="/tags/vue/" style="font-size: 10px;">vue</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/03/17/SQL%E4%BC%98%E5%8C%96-%E8%B0%93%E8%AF%8D/">SQL优化-谓词</a>
+          </li>
+        
+          <li>
+            <a href="/2024/08/25/Vue%E6%87%92%E5%8A%A0%E8%BD%BD/">Vue懒加载</a>
+          </li>
+        
+          <li>
+            <a href="/2024/08/22/TCP%E5%92%8CUDP%E5%8D%8F%E8%AE%AE%E5%9C%A8%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8A%E7%9A%84%E5%B7%AE%E5%BC%82/">TCP 和 UDP 协议在应用场景上的差异</a>
+          </li>
+        
+          <li>
+            <a href="/2024/08/22/MySql-%E7%B4%A2%E5%BC%95/">MySql-索引</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/18/2021-04-17%E9%9D%A2%E8%AF%95%E5%98%89%E7%AB%8B%E5%88%9B/">2021/04/17面试嘉立创</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 YHQ<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
